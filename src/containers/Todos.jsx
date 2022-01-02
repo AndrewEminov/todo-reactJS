@@ -6,33 +6,45 @@ import { ACTIONS_TODO } from '../appRelated/constants';
 import { Filter } from '../components/Filter';
 
 export class Todos extends Component {
-    state = { todos: [], todoName: '', allTodoList: [], status: ACTIONS_TODO.all};
+    state = { 
+        todos: [], 
+        todoName: '', 
+        allTodoList: [], 
+        status: ACTIONS_TODO.all
+    };
 
-    filterTodos = (status) => {
-        let list = [];
-        const { todos, allTodoList } = this.state;
-         
-        if(status === ACTIONS_TODO.aprove) list = allTodoList.filter((todo) => todo.isAprove && todo );
-        if(status === ACTIONS_TODO.decline) list = allTodoList.filter((todo) => !todo.isAprove && todo );
-        if(status === ACTIONS_TODO.all) list = allTodoList;
-    
-        this.setState({todos: list, status});
+    filterTodos = (status, todoList) => {
+        const { allTodoList } = this.state;
+
+        let list = todoList || allTodoList;
+
+        if(status === ACTIONS_TODO.aprove) list = list.filter((todo) => todo.isAprove && todo );
+        if(status === ACTIONS_TODO.decline) list = list.filter((todo) => !todo.isAprove && todo );
+        if(status === ACTIONS_TODO.all) list = list;
+
+        
+        this.setState({
+            todos: list,
+            allTodoList: todoList || allTodoList,
+            status
+        });
+        
     }
 
-    updateTodos = (status, currentTodoId) => {
+    updateTodos = (action, currentTodoId) => {
         let list = [];
-        const { todos, allTodoList } = this.state;
+        const { todos, allTodoList, status } = this.state;
         
-        if(status === ACTIONS_TODO.aprove){
-            list = todos.map((todo) => currentTodoId === todo.id ? {...todo, isAprove: !todo.isAprove} : todo);
+        if(action === ACTIONS_TODO.aprove){
+            list = allTodoList.map((todo) => currentTodoId === todo.id ? {...todo, isAprove: !todo.isAprove} : todo);
 
-            this.setState({todos: list, allTodoList: list})
+            this.filterTodos(status, list);
         }
 
-        if(status === ACTIONS_TODO.decline){
-            list = todos.filter((todo) => currentTodoId !== todo.id && todo )
+        if(action === ACTIONS_TODO.decline){
+            list = allTodoList.filter((todo) => currentTodoId !== todo.id && todo )
 
-            this.setState({todos: list, allTodoList: list});
+            this.filterTodos(status, list);
         }
     }
 
@@ -51,11 +63,8 @@ export class Todos extends Component {
                 id: Math.random(), 
                 isAprove: false
             }
-
-            this.setState({
-                todos: [...todos, newTodo],
-                allTodoList: [...allTodoList, newTodo]
-            });
+        
+            this.filterTodos(status, [...allTodoList, newTodo]);
         }        
     }
 
