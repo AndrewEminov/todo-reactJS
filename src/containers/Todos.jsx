@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import styled from 'styled-components/macro';
 import { Todo } from '../components/Todo';
 import { InputBar } from '../components/InputBar';
-import { ACTIONS_TODO } from '../appRelated/constants';
+import { ACTIONS_TODO, PRIORITY_TODO } from '../appRelated/constants';
 import { Filter } from '../components/Filter';
 
 export class Todos extends Component {
@@ -10,7 +10,8 @@ export class Todos extends Component {
         todos: [], 
         todoName: '', 
         allTodoList: [], 
-        status: ACTIONS_TODO.all
+        status: ACTIONS_TODO.all,
+        priority: PRIORITY_TODO[0]
     };
 
     filterTodos = (status, todoList) => {
@@ -22,7 +23,6 @@ export class Todos extends Component {
         if(status === ACTIONS_TODO.decline) list = list.filter((todo) => !todo.isAprove && todo );
         if(status === ACTIONS_TODO.all) list = list;
 
-        
         this.setState({
             todos: list,
             allTodoList: todoList || allTodoList,
@@ -37,19 +37,29 @@ export class Todos extends Component {
         
         if(action === ACTIONS_TODO.aprove){
             list = allTodoList.map((todo) => currentTodoId === todo.id ? {...todo, isAprove: !todo.isAprove} : todo);
-
-            this.filterTodos(status, list);
         }
 
         if(action === ACTIONS_TODO.decline){
             list = allTodoList.filter((todo) => currentTodoId !== todo.id && todo )
-
-            this.filterTodos(status, list);
         }
+
+        if(action.isPriority){
+            const priority = PRIORITY_TODO.filter((priority) => priority.value === +action.value && priority)[0];
+
+            list = allTodoList.map((todo) => currentTodoId === todo.id ? {...todo, priority} : todo);
+        }
+
+        this.filterTodos(status, list);
+    }
+
+    handlerSetPriority = ({target: { value }}) => {
+        const priority = PRIORITY_TODO.filter((priority) => priority.value === +value && priority)[0];
+
+        this.setState({ priority });
     }
 
     handlerCreateNewTodo = () => {
-        const { todoName, allTodoList, todos, status } = this.state;
+        const { todoName, allTodoList, status, priority } = this.state;
         const existedTodo = allTodoList.find(todo => todo.name === todoName);
 
         if(existedTodo){
@@ -61,7 +71,8 @@ export class Todos extends Component {
             const newTodo = {
                 name: todoName, 
                 id: Math.random(), 
-                isAprove: false
+                isAprove: false,
+                priority
             }
         
             this.filterTodos(status, [...allTodoList, newTodo]);
@@ -85,6 +96,7 @@ export class Todos extends Component {
                 </Filters>
 
                 <InputBar
+                    handlerSetPriority={this.handlerSetPriority}
                     handlerCreateNewTodo={this.handlerCreateNewTodo}
                     handlerInputBar={this.handlerInputBar}
                     todoName={todoName}
@@ -92,7 +104,8 @@ export class Todos extends Component {
                 {todos.map((todo) => 
                     <Todo 
                         updateTodos={this.updateTodos} 
-                        key={todo.id} 
+                        key={todo.id}
+                        priority={todo.priority}
                         name={todo.name} 
                         id={todo.id} 
                         isAprove={todo.isAprove} 

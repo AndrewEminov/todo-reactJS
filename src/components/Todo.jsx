@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import styled from 'styled-components/macro'
 import { ACTIONS_TODO } from '../appRelated/constants';
+import { TodoPriority } from '../components/TodoPriority';
 
 export class Todo extends Component {
     
@@ -13,14 +14,20 @@ export class Todo extends Component {
         updateTodos(status, id);
     }
 
+    handlerTodoPriority = ({target: {value}}, id) => {
+        const { updateTodos } = this.props;
+        updateTodos({value, isPriority: true}, id);
+    }
+
     render(){
-        const { name, id, isAprove } = this.props;
+        const { name, id, isAprove, priority, handlerSetPriority,  } = this.props;
 
         return(
             <Wrapper isAprove={isAprove}>
-                <Name>{name}</Name>
+                <Name priority={priority}>{name}</Name>
                 <Aprove onClick = {() => this.handlerTodoAction(id, ACTIONS_TODO.aprove)}>V</Aprove>
                 <Decline onClick = {() => this.handlerTodoAction(id, ACTIONS_TODO.decline)}>X</Decline>
+                <TodoPriority currentPriority={priority} handlerChange={(e) => this.handlerTodoPriority(e, id)}/>
             </Wrapper>
         )
     }
@@ -28,10 +35,12 @@ export class Todo extends Component {
 
 
 const Wrapper = styled.div`
-    text-decoration: ${(p) => p.isAprove && 'line-through'}
+    text-decoration: ${(p) => p.isAprove && 'line-through'};
 `;
 
-const Name = styled.span``;
+const Name = styled.span`
+    background: ${(p) => p.priority.color};
+`;
 
 const Aprove = styled.button``;
 
